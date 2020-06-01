@@ -40,10 +40,4 @@ const sendPendingEmailCronJob = async () => {
 }
 
 const job = new CronJob(cronJobSchedule, sendPendingEmailCronJob)
-sendPendingEmailCronJob()
 module.exports = job
-
-/*
-{"bcc":"","cc":"","subject":"deletedCount:deletedCount:deletedCount:","text":"deletedCount:deletedCount:deletedCount:deletedCount:deletedCount:deletedCount:deletedCount:","to":"gordon.ruizean@gmail.com, teng.gao@ruizean.com"}
-
-*/
