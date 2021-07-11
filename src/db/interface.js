@@ -26,14 +26,14 @@ const bundleDisconnection = () => {
   process.on('beforeExit', (code) => {
     debug('About to exit with code: %s', code)
   })
-  for (let i of ['SIGINT', 'SIGUSR1', 'SIGUSR2']) {
-    process.on(i, () => {
+  ['SIGINT', 'SIGUSR1', 'SIGUSR2'].forEach(item => {
+    process.on(item, () => {
       mongoose.connection.close(() => {
         debug('mongodb will close')
         process.exit()
       })
     })
-  }
+  })
 }
 
 bundleDisconnection()
@@ -57,24 +57,23 @@ class MongoInterface {
    * @param  {pass db model action function } coreFunc
    * @param  {the key of db action's return} feedbackKey
    */
-  _performAction(data, needClose = true, coreFunc, feedbackKey) {
+  _performAction async (data, needClose = true, coreFunc, feedbackKey) {
     let feedback = {}
-    return new Promise(async (resolve, reject) => {
-      try {
+     try {
         if (mongoose.connection.readyState === 0) await mongoose.connect(mongoAtlasLink, connectionOptions)
         let result = await coreFunc(data)
-        feedbackKey !== '' ? (feedback[feedbackKey] = result[feedbackKey]) : (feedback['result'] = result)
+        !feedbackKey ? (feedback[feedbackKey] = result[feedbackKey]) : (feedback['result'] = result)
         debug('db returns: %o', feedback)
         if (needClose) await mongoose.connection.close()
-        resolve(feedback)
+        return feedback;
       } catch (error) {
         debug('e in perform action: %o', error)
         feedback.errMessage = error.message
         feedback.errName = error.name
         if (needClose) await mongoose.connection.close()
-        reject(feedback)
+        throw new Error(feedback)
       }
-    })
+   
   }
 
   // insert a record
